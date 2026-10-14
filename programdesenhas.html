@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Senhas</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #10172a, #253b67);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            color: #222;
+            width: 100%;
+            max-width: 440px;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 10px 35px #0005;
+        }
+
+        h1 {
+            text-align: center;
+            color: #243b70;
+            margin-bottom: 10px;
+        }
+
+        .descricao {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .campo-senha {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 13px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #4169e1;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .mostrar {
+            background: #e8edff;
+            color: #243b70;
+            padding: 0 12px;
+        }
+
+        .barra-fundo {
+            height: 10px;
+            background: #e5e5e5;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        #barra {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        #resultado {
+            text-align: center;
+            font-size: 21px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        #mensagem {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .requisitos {
+            list-style: none;
+            padding: 0;
+        }
+
+        .requisitos li {
+            padding: 8px 0;
+            color: #777;
+        }
+
+        .requisitos li.ok {
+            color: #16834a;
+        }
+
+        .analisar {
+            width: 100%;
+            background: #315bd6;
+            color: white;
+            padding: 14px;
+            font-size: 16px;
+            margin-top: 12px;
+        }
+
+        .analisar:hover {
+            background: #2448b5;
+        }
+
+        .nota {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🔐 Verificador de Senhas</h1>
+
+    <p class="descricao">
+        Descubra se sua senha é segura.
+    </p>
+
+    <label for="senha">Digite uma senha:</label>
+
+    <div class="campo-senha">
+        <input
+            type="password"
+            id="senha"
+            placeholder="Digite sua senha..."
+            autocomplete="off"
+            spellcheck="false"
+        >
+
+        <button class="mostrar" id="btnMostrar"
+                type="button" aria-label="Mostrar senha">
+            Mostrar
+        </button>
+    </div>
+
+    <div class="barra-fundo">
+        <div id="barra"></div>
+    </div>
+
+    <div id="resultado" aria-live="polite">
+        Aguardando senha...
+    </div>
+
+    <p id="mensagem">
+        Digite uma senha para começar a análise.
+    </p>
+
+    <h3>Requisitos de segurança</h3>
+
+    <ul class="requisitos">
+        <li id="tamanho">✖ Pelo menos 12 caracteres</li>
+        <li id="minuscula">✖ Letras minúsculas</li>
+        <li id="maiuscula">✖ Letras maiúsculas</li>
+        <li id="numero">✖ Pelo menos um número</li>
+        <li id="simbolo">✖ Pelo menos um símbolo</li>
+        <li id="diversidade">✖ Evitar sequências repetidas</li>
+    </ul>
+
+    <button class="analisar" id="btnAnalisar" type="button">
+        Analisar senha
+    </button>
+
+    <p class="nota">
+        A análise é realizada localmente no seu navegador.
+        Não digite senhas reais ou pessoais neste exemplo.
+    </p>
+</div>
+
+<script>
+    const senha = document.getElementById("senha");
+    const barra = document.getElementById("barra");
+    const resultado = document.getElementById("resultado");
+    const mensagem = document.getElementById("mensagem");
+
+    const btnMostrar = document.getElementById("btnMostrar");
+    const btnAnalisar = document.getElementById("btnAnalisar");
+
+    function verificar(id, condicao, texto) {
+        const item = document.getElementById(id);
+
+        item.classList.toggle("ok", condicao);
+        item.textContent = (condicao ? "✔ " : "✖ ") + texto;
+    }
+
+    function analisarSenha() {
+        const valor = senha.value;
+
+        if (valor.length === 0) {
+            resultado.textContent = "Aguardando senha...";
+            mensagem.textContent =
+                "Digite uma senha para começar a análise.";
+            barra.style.width = "0%";
+
+            ["tamanho", "minuscula", "maiuscula",
+             "numero", "simbolo", "diversidade"].forEach(id => {
+                const item = document.getElementById(id);
+                item.classList.remove("ok");
+            });
+
+            return;
+        }
+
+        const tamanho = valor.length >= 12;
+        const minuscula = /[a-zá-ú]/.test(valor);
+        const maiuscula = /[A-ZÁ-Ú]/.test(valor);
+        const numero = /[0-9]/.test(valor);
+        const simbolo = /[^a-zA-Z0-9á-úÁ-Ú]/.test(valor);
+
+        // Penaliza sequências comuns e repetições excessivas.
+        const sequencia =
+            /(.)\1{2,}|0123|1234|2345|3456|4567|5678|6789|9876|8765|abcd|bcde|cdef|qwerty|senha|password/i
+            .test(valor);
+
+        const diversidade = !sequencia;
+
+        verificar("tamanho", tamanho, "Pelo menos 12 caracteres");
+        verificar("minuscula", minuscula, "Letras minúsculas");
+        verificar("maiuscula", maiuscula, "Letras maiúsculas");
+        verificar("numero", numero, "Pelo menos um número");
+        verificar("simbolo", simbolo, "Pelo menos um símbolo");
+        verificar(
+            "diversidade",
+            diversidade,
+            "Evitar sequências comuns ou repetições"
+        );
+
+        let pontos = 0;
+
+        if (valor.length >= 8) pontos++;
+        if (tamanho) pontos++;
+        if (minuscula && maiuscula) pontos++;
+        if (numero) pontos++;
+        if (simbolo) pontos++;
+        if (valor.length >= 16) pontos++;
+        if (diversidade) pontos++;
+
+        let nivel;
+        let cor;
+        let porcentagem;
+        let dica;
+
+        if (valor.length < 6 || pontos <= 2) {
+            nivel = "Muito fraca";
+            cor = "#dc2626";
+            porcentagem = 20;
+            dica = "Use uma senha mais longa e variada.";
+        } else if (pontos <= 3) {
+            nivel = "Fraca";
+            cor = "#f97316";
+            porcentagem = 40;
+            dica = "Adicione mais caracteres e variedade.";
+        } else if (pontos <= 4) {
+            nivel = "Média";
+            cor = "#eab308";
+            porcentagem = 60;
+            dica = "Melhore a senha com mais variedade.";
+        } else if (pontos <= 5) {
+            nivel = "Forte";
+            cor = "#16a34a";
+            porcentagem = 80;
+            dica = "Bom resultado! Evite reutilizar esta senha.";
+        } else {
+            nivel = "Muito forte";
+            cor = "#047857";
+            porcentagem = 100;
+            dica = "Ótimo! Prefira uma senha única e imprevisível.";
+        }
+
+        resultado.textContent = nivel;
+        resultado.style.color = cor;
+
+        barra.style.width = porcentagem + "%";
+        barra.style.backgroundColor = cor;
+
+        mensagem.textContent = dica;
+    }
+
+    senha.addEventListener("input", analisarSenha);
+    btnAnalisar.addEventListener("click", analisarSenha);
+
+    btnMostrar.addEventListener("click", () => {
+        const visivel = senha.type === "text";
+
+        senha.type = visivel ? "password" : "text";
+        btnMostrar.textContent = visivel ? "Mostrar" : "Ocultar";
+        btnMostrar.setAttribute(
+            "aria-label",
+            visivel ? "Mostrar senha" : "Ocultar senha"
+        );
+    });
+</script>
+
+</body>
+</html>
